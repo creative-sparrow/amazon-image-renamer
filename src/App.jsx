@@ -301,18 +301,18 @@ export default function ImageRenamerApp() {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => setFiles(Array(10).fill(null))} className="px-3 py-2 rounded-xl border hover:bg-gray-50" disabled={busy}>Clear all</button>
-          <span className="text-xs text-gray-500">Drag to reorder. Click an empty tile to add a single image, or drop a file onto a specific tile.</span>
-        </div>
-
         {/* Upload Area */}
         <div className="bg-white border-2 border-dashed rounded-2xl p-6 text-center shadow">
           <input ref={inputRef} type="file" multiple accept="image/*" onChange={onPickFiles} className="hidden" />
           <p className="mb-2">Drop up to 10 images here or</p>
           <button onClick={() => inputRef.current?.click()} className="px-4 py-2 rounded-xl bg-gray-900 text-white hover:bg-black">Browse Files</button>
         </div>
+
+        {/* Clear all button container */}
+        <div className="flex justify-end mt-4">
+          <button onClick={() => setFiles(Array(10).fill(null))} className="px-3 py-2 rounded-xl border hover:bg-gray-50" disabled={busy}>Clear all</button>
+        </div>
+        <div className="mt-1 text-xs text-gray-500">Drag to reorder. Click an empty tile to add a single image, or drop a file onto a specific tile.</div>
 
         {/* Status */}
         {status && (
@@ -367,7 +367,17 @@ export default function ImageRenamerApp() {
                     if (dropped.length && !item) {
                       addFiles(dropped.slice(0,1), idx);
                     } else {
-                      handleDrop(idx)(e);
+                      const from = dragIndex.current;
+                      if (from === null || from === idx) return;
+                      setFiles((prev) => {
+                        const next = [...prev];
+                        const a = next[from];
+                        const b = next[idx];
+                        next[from] = b;
+                        next[idx] = a;
+                        return next;
+                      });
+                      dragIndex.current = null;
                     }
                   }}
                   className="relative bg-white rounded-2xl shadow border overflow-hidden"
@@ -397,13 +407,13 @@ export default function ImageRenamerApp() {
                     <div className="absolute top-2 left-2 text-xs font-semibold bg-red-600 text-white px-2 py-1 rounded-full">Preview error</div>
                   )}
 
-                  {/* MAIN/PTxx badge (still shown even if preview failed) */}
+                  {/* MAIN/PTxx badge (top-left) */}
                   {badge && (
-                    <div className="absolute bottom-2 left-2 text-xs font-semibold bg-black/80 text-white px-2 py-1 rounded-full">{badge}</div>
+                    <div className="absolute top-2 left-2 text-xs font-semibold bg-black/80 text-white px-2 py-1 rounded-full">{badge}</div>
                   )}
 
                   {item && (
-                    <button onClick={() => setFiles((prev) => prev.map((v, i) => (i === idx ? null : v)))} className="absolute top-2 right-2 text-xs bg-white/90 hover:bg-white px-2 py-1 rounded-full border">Remove</button>
+                    <button onClick={() => setFiles((prev) => prev.map((v, i) => (i === idx ? null : v)))} className="absolute top-2 right-2 text-xs bg-red-600 text-white hover:bg-red-700 px-2 py-1 rounded-full">Remove</button>
                   )}
 
                   <div className="p-3 text-xs text-gray-600">
@@ -445,10 +455,9 @@ export default function ImageRenamerApp() {
         </div>
       </div>
     </div>
-
-    // single hidden input used per-slot so clicking a tile adds just one image
   );
 
+  // single hidden input used per-slot so clicking a tile adds just one image
   function inputSlot(slotIndex) {
     const input = document.createElement('input');
     input.type = 'file';
