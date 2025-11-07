@@ -295,7 +295,7 @@ export default function ImageRenamerApp() {
             <button onClick={downloadZip} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
               {busy ? 'Building ZIP…' : 'Download ZIP'}
             </button>
-            <button onClick={downloadIndividually} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-emerald-600 hover:bg-emerald-700'}`}>
+            <button onClick={downloadIndividually} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}>
               {busy ? 'Saving…' : 'Download Individually'}
             </button>
           </div>
