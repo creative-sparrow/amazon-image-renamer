@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Amazon Image Renamer Demo</title>
-<link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css" rel="stylesheet">
+
+  <!-- ✅ Tailwind CDN (ensures styling works even on Vercel) -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-50">
   <div id="root"></div>
+
+  <!-- Your React app entry -->
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
