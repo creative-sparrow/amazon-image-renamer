@@ -396,12 +396,11 @@ export default function ImageRenamerApp() {
                   )}
 
                   {/* MAIN/PTxx badge (top-left) */}
-                  {badge && (
-                    /* Match the pill look of the Remove button but keep orange colour */
-                    <div className="absolute top-2 left-2 text-xs bg-orange-600 text-white px-2 py-1 rounded-full">
-                      {badge}
-                    </div>
-                  )}
+                 {badge && (
+                <div className="absolute top-2 left-2 text-xs font-semibold bg-orange-500 text-white px-3 py-1 rounded-full shadow-md border border-orange-600">
+                {badge}
+                </div>
+)}
 
                   {item && (
                     <button
