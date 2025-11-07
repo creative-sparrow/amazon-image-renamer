@@ -1,3 +1,4 @@
+import ReactDOM from "react-dom";
 import React, { useRef, useState, useEffect } from "react";
 import JSZip from "jszip";
 import saveAs from "file-saver";
@@ -223,3 +224,9 @@ function App() {
 }
 
 export default App;
+
+// Mount App to root
+const root = document.getElementById('root');
+if (root) {
+  ReactDOM.render(<App />, root);
+}
