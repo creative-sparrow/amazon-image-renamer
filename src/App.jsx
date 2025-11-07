@@ -432,15 +432,21 @@ export default function ImageRenamerApp() {
         <div className="mt-8 bg-white rounded-2xl shadow p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-medium">Final filenames preview</h2>
-            <button
-              onClick={async () => {
-                const names = computeFinalNames().join('\n');
-                try { await navigator.clipboard.writeText(names); setCopied(true); setTimeout(() => setCopied(false), 1200);} catch(_){} 
-              disabled={!filled.length}
-              className="px-3 py-2 rounded-xl border hover:bg-gray-50"
-            >
-              {copied ? 'Copied!' : 'Copy list'}
-            </button>
+ <button
+  onClick={async () => {
+    const names = computeFinalNames().join('\n');
+    try {
+      await navigator.clipboard.writeText(names);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch (_) {}
+  }}
+  disabled={!filled.length}
+  className="px-3 py-2 rounded-xl border hover:bg-gray-50"
+>
+  {copied ? 'Copied!' : 'Copy list'}
+</button>
+
           </div>
           {filled.length ? (
             <pre className="text-xs bg-gray-50 p-3 rounded-xl overflow-auto">{computeFinalNames().join('\n')}</pre>
