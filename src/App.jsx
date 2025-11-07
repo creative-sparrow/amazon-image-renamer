@@ -397,7 +397,7 @@ export default function ImageRenamerApp() {
 
                   {/* MAIN/PTxx badge (top-left) */}
                  {badge && (
-                <div className="absolute top-2 left-2 text-xs font-semibold bg-orange-500 text-white px-3 py-1 rounded-full shadow-md border border-orange-600">
+                <div className="absolute top-2 left-2 text-xs font-semibold bg-orange-600 text-white px-3 py-1 rounded-full shadow-md">
                 {badge}
                 </div>
 )}
