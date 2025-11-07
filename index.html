@@ -12,7 +12,11 @@
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
   <!-- Babel standalone -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Load JSX file with Babel with ES module support -->
-  <script type="text/babel" data-type="module" data-presets="react" src="./amazon_image_renamer_drag_rename_demo.jsx"></script>
+  <!-- Import App component and render -->
+  <script type="text/babel" data-type="module" data-presets="react">
+    import App from './amazon_image_renamer_drag_rename_demo.jsx';
+    const root = document.getElementById('root');
+    ReactDOM.render(<App />, root);
+  </script>
 </body>
 </html>
