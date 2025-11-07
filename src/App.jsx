@@ -351,7 +351,7 @@ export default function ImageRenamerApp() {
                   onDragStart={(e) => {
                     if (!item) return;
                     dragIndex.current = idx;
-                    try { e.dataTransfer.effectAllowed = 'move'; } catch(_){}}
+                    try { e.dataTransfer.effectAllowed = 'move'; } catch(_){} }}
                   onDragOver={(e) => { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch(_){} }}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -453,3 +453,5 @@ export default function ImageRenamerApp() {
     </div>
   );
 }
+
+Fix JSX brace mismatch in drag handlers
