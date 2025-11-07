@@ -436,7 +436,6 @@ export default function ImageRenamerApp() {
               onClick={async () => {
                 const names = computeFinalNames().join('\n');
                 try { await navigator.clipboard.writeText(names); setCopied(true); setTimeout(() => setCopied(false), 1200);} catch(_){} 
-              }
               disabled={!filled.length}
               className="px-3 py-2 rounded-xl border hover:bg-gray-50"
             >
