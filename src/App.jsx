@@ -305,7 +305,10 @@ export default function ImageRenamerApp() {
         <div className="flex justify-end mt-4">
           <button onClick={() => setFiles(Array(10).fill(null))} className="px-3 py-2 rounded-xl border hover:bg-gray-50" disabled={busy}>Clear all</button>
         </div>
-        <div className="mt-1 text-xs text-gray-500">Drag to reorder. Click an empty tile to add a single image, or drop a file onto a specific tile.</div>
+        <div className="mt-6 text-center text-sm text-gray-500">
+  Drag to reorder. Click an empty tile to add a single image, or drop a file onto a specific tile.
+</div>
+
 
         {/* Status */}
         {status && (
