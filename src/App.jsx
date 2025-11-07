@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import JSZip from "jszip";
 import saveAs from "file-saver";
 
@@ -96,6 +96,16 @@ export default function ImageRenamerApp() {
   const inputRef = useRef(null);
   const dragIndex = useRef(null);
 
+  const filled = useMemo(() => files.filter(Boolean), [files]);
+  const normalizedProduct = useMemo(() => normalize(product), [product]);
+  const normalizedDiff = useMemo(() => normalize(diff), [diff]);
+
+  const buildFilename = (index, item) => {
+    const type = imageTypeForIndex(index);
+    const ext = getExt(item?.file?.name);
+    return `${normalizedProduct}_${date}_${normalizedDiff}_${type}.${ext}`;
+  };
+
   // Cleanup object/data URLs and pending links on unmount/update
   useEffect(() => () => {
     files.forEach((it) => {
@@ -157,55 +167,26 @@ export default function ImageRenamerApp() {
     });
   }
 
-  // ---------------- Drag & drop between tiles ----------------
-  const handleDragStart = (index) => (e) => {
-    if (!files[index]) return; // only drag filled tiles
-    dragIndex.current = index;
-    try { e.dataTransfer.effectAllowed = "move"; } catch(_){}
-  };
-
-  const handleDrop = (index) => (e) => {
-    e.preventDefault();
-    const from = dragIndex.current;
-    if (from === null || from === index) return;
-    setFiles((prev) => {
-      const next = [...prev];
-      const a = next[from];
-      const b = next[index];
-      next[from] = b;
-      next[index] = a;
-      return next;
-    });
-    dragIndex.current = null;
-  };
-
   // ---------------- Downloads ----------------
-  const filledTiles = () => files.filter(Boolean);
-
   const downloadZip = async () => {
-    const filled = filledTiles();
     if (!filled.length) return alert("Add images first.");
     setBusy(true);
     setStatus("Preparing ZIP…");
     try {
       const zip = new JSZip();
-      const PROD = normalize(product);
-      const DIFF = normalize(diff);
-      for (let i = 0; i < filled.length; i++) {
-        const item = filled[i];
-        if (!item || !item.file) continue;
-        const type = imageTypeForIndex(i);
-        const ext = getExt(item.file.name);
-        const filename = `${PROD}_${date}_${DIFF}_${type}.${ext}`;
-        const buf = await item.file.arrayBuffer();
-        zip.file(filename, buf);
-      }
+      await Promise.all(
+        filled.map(async (item, i) => {
+          if (!item?.file) return;
+          const buf = await item.file.arrayBuffer();
+          zip.file(buildFilename(i, item), buf);
+        })
+      );
       const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/zip' });
-      const name = `${normalize(product)}_${date}_${normalize(diff)}.zip`;
+      const name = `${normalizedProduct}_${date}_${normalizedDiff}.zip`;
 
       // Always prepare a manual link first (visible regardless of auto success)
       const manualUrl = URL.createObjectURL(blob);
-      setPendingLinks((prev) => [{ name, url: manualUrl }, ...prev.filter(l => l.name !== name)]);
+      setPendingLinks((prev) => [{ name, url: manualUrl }, ...prev.filter((l) => l.name !== name)]);
 
       // Try auto download
       const ok = triggerDownload(blob, name);
@@ -221,22 +202,17 @@ export default function ImageRenamerApp() {
   };
 
   const downloadIndividually = async () => {
-    const filled = filledTiles();
     if (!filled.length) return alert("Add images first.");
     setBusy(true);
     setStatus("Triggering individual downloads…");
     try {
-      const PROD = normalize(product);
-      const DIFF = normalize(diff);
       const manual = [];
 
       // Fire all clicks synchronously in a single user gesture (Slack-style)
       for (let i = 0; i < filled.length; i++) {
         const item = filled[i];
         if (!item || !item.file) continue;
-        const type = imageTypeForIndex(i);
-        const ext = getExt(item.file.name);
-        const filename = `${PROD}_${date}_${DIFF}_${type}.${ext}`;
+        const filename = buildFilename(i, item);
 
         const ok = triggerDownloadSync(item.file, filename);
         if (!ok) {
@@ -260,15 +236,32 @@ export default function ImageRenamerApp() {
   };
 
   // Preview of final filenames
-  const computeFinalNames = () => {
-    const filled = filledTiles();
-    const PROD = normalize(product);
-    const DIFF = normalize(diff);
-    return filled.map((item, i) => {
-      const type = imageTypeForIndex(i);
-      const ext = getExt(item?.file?.name);
-      return `${PROD}_${date}_${DIFF}_${type}.${ext}`;
+  const computeFinalNames = () => filled.map((item, i) => buildFilename(i, item));
+
+  const handleRemove = (index) => {
+    setFiles((prev) => prev.map((item, i) => (i === index ? null : item)));
+  };
+
+  const swapFiles = (from, to) => {
+    if (from === null || from === to) return;
+    setFiles((prev) => {
+      const next = [...prev];
+      const temp = next[from];
+      next[from] = next[to];
+      next[to] = temp;
+      return next;
     });
+  };
+
+  const openSlotPicker = (slotIndex) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const picked = Array.from(e.target.files || []);
+      if (picked.length) await addFiles(picked.slice(0, 1), slotIndex);
+    };
+    input.click();
   };
 
   // ---------------- Render ----------------
@@ -348,7 +341,7 @@ export default function ImageRenamerApp() {
         <div className="mt-6">
           <ul className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {files.map((item, idx) => {
-              const rank = item ? files.filter(Boolean).indexOf(item) : null;
+              const rank = item ? filled.indexOf(item) : null;
               const badge = (typeof rank === 'number' && rank >= 0) ? imageTypeForIndex(rank) : null;
               const isError = !!(item && item.error);
               return (
@@ -365,20 +358,12 @@ export default function ImageRenamerApp() {
                     e.preventDefault();
                     const dropped = Array.from(e.dataTransfer.files || []);
                     if (dropped.length && !item) {
-                      addFiles(dropped.slice(0,1), idx);
+                      addFiles(dropped.slice(0, 1), idx);
                     } else {
                       const from = dragIndex.current;
-                      if (from === null || from === idx) return;
-                      setFiles((prev) => {
-                        const next = [...prev];
-                        const a = next[from];
-                        const b = next[idx];
-                        next[from] = b;
-                        next[idx] = a;
-                        return next;
-                      });
-                      dragIndex.current = null;
+                      swapFiles(from, idx);
                     }
+                    dragIndex.current = null;
                   }}
                   className="relative bg-white rounded-2xl shadow border overflow-hidden"
                 >
@@ -390,14 +375,18 @@ export default function ImageRenamerApp() {
                       <div className="opacity-80">File will still be renamed & downloaded.</div>
                       <button
                         type="button"
-                        onClick={() => inputSlot(idx)}
+                        onClick={() => openSlotPicker(idx)}
                         className="mt-2 px-2 py-1 text-xs rounded border border-red-300 hover:bg-red-100"
                       >
                         Replace image
                       </button>
                     </div>
                   ) : (
-                    <button type="button" onClick={() => inputSlot(idx)} className="h-44 w-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm hover:bg-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => openSlotPicker(idx)}
+                      className="h-44 w-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm hover:bg-gray-200"
+                    >
                       Click here to upload image
                     </button>
                   )}
@@ -413,7 +402,12 @@ export default function ImageRenamerApp() {
                   )}
 
                   {item && (
-                    <button onClick={() => setFiles((prev) => prev.map((v, i) => (i === idx ? null : v)))} className="absolute top-2 right-2 text-xs bg-red-600 text-white hover:bg-red-700 px-2 py-1 rounded-full">Remove</button>
+                    <button
+                      onClick={() => handleRemove(idx)}
+                      className="absolute top-2 right-2 text-xs bg-red-600 text-white hover:bg-red-700 px-2 py-1 rounded-full"
+                    >
+                      Remove
+                    </button>
                   )}
 
                   <div className="p-3 text-xs text-gray-600">
@@ -441,13 +435,13 @@ export default function ImageRenamerApp() {
                 const names = computeFinalNames().join('\n');
                 try { await navigator.clipboard.writeText(names); setCopied(true); setTimeout(() => setCopied(false), 1200);} catch(_){}
               }}
-              disabled={!files.some(Boolean)}
+              disabled={!filled.length}
               className="px-3 py-2 rounded-xl border hover:bg-gray-50"
             >
               {copied ? 'Copied!' : 'Copy list'}
             </button>
           </div>
-          {files.some(Boolean) ? (
+          {filled.length ? (
             <pre className="text-xs bg-gray-50 p-3 rounded-xl overflow-auto">{computeFinalNames().join('\n')}</pre>
           ) : (
             <p className="text-sm text-gray-500">Add images to see the generated names.</p>
@@ -457,15 +451,4 @@ export default function ImageRenamerApp() {
     </div>
   );
 
-  // single hidden input used per-slot so clicking a tile adds just one image
-  function inputSlot(slotIndex) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e) => {
-      const picked = Array.from(e.target.files || []);
-      if (picked.length) await addFiles(picked.slice(0,1), slotIndex);
-    };
-    input.click();
-  }
 }
