@@ -146,7 +146,7 @@ export default function ImageRenamerApp() {
 
   async function addFiles(fileList, targetIndex = null) {
     const imgs = fileList
-      .filter((f) => f && ((f.type && f.type.startsWith("image/")) || /\.(jpe?g|png)$/i.test(f.name || "")))
+      .filter((f) => f && ((f.type && f.type.startsWith("image/")) || \.\(jpe?g|png)$/.test(f.name || "")))
       .slice(0, 10);
 
     if (!imgs.length) return;
@@ -285,10 +285,10 @@ export default function ImageRenamerApp() {
             <input value={diff} onChange={(e) => setDiff(e.target.value)} className="border rounded-xl px-3 py-2" />
           </div>
           <div className="flex items-end flex-wrap gap-2">
-            <button onClick={downloadZip} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}>
+            <button onClick={downloadZip} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}> 
               {busy ? 'Building ZIP…' : 'Download ZIP'}
             </button>
-            <button onClick={downloadIndividually} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}>
+            <button onClick={downloadIndividually} disabled={busy} className={`px-4 py-2 rounded-xl text-white ${busy ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}> 
               {busy ? 'Saving…' : 'Download Individually'}
             </button>
           </div>
@@ -351,8 +351,7 @@ export default function ImageRenamerApp() {
                   onDragStart={(e) => {
                     if (!item) return;
                     dragIndex.current = idx;
-                    try { e.dataTransfer.effectAllowed = 'move'; } catch(_){}
-                  }}
+                    try { e.dataTransfer.effectAllowed = 'move'; } catch(_){}}
                   onDragOver={(e) => { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch(_){} }}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -398,7 +397,10 @@ export default function ImageRenamerApp() {
 
                   {/* MAIN/PTxx badge (top-left) */}
                   {badge && (
-                    <div className="absolute top-2 left-2 text-xs font-semibold bg-orange-500 text-white px-2 py-1 rounded-full">{badge}</div>
+                    /* Match the pill look of the Remove button but keep orange colour */
+                    <div className="absolute top-2 left-2 text-xs bg-orange-600 text-white px-2 py-1 rounded-full">
+                      {badge}
+                    </div>
                   )}
 
                   {item && (
@@ -433,8 +435,8 @@ export default function ImageRenamerApp() {
             <button
               onClick={async () => {
                 const names = computeFinalNames().join('\n');
-                try { await navigator.clipboard.writeText(names); setCopied(true); setTimeout(() => setCopied(false), 1200);} catch(_){}
-              }}
+                try { await navigator.clipboard.writeText(names); setCopied(true); setTimeout(() => setCopied(false), 1200);} catch(_){} 
+              }
               disabled={!filled.length}
               className="px-3 py-2 rounded-xl border hover:bg-gray-50"
             >
@@ -450,5 +452,4 @@ export default function ImageRenamerApp() {
       </div>
     </div>
   );
-
 }
