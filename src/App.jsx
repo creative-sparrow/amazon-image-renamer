@@ -458,5 +458,3 @@ export default function ImageRenamerApp() {
     </div>
   );
 }
-
-Fix JSX brace mismatch in drag handlers
