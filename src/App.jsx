@@ -51,7 +51,7 @@ const imageTypeForIndex = (i) => (i === 0 ? "MAIN" : `PT${String(i).padStart(2, 
 const normalize = (s) => (s || "").trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "_");
 // Safe extension extractor
 const getExt = (name) => {
-  const m = /\.([^.]+)$/.exec(name || "");
+  const m = /.([^.]+)$/.exec(name || "");
   return (m ? m[1] : "jpg").toLowerCase();
 };
 
@@ -146,7 +146,7 @@ export default function ImageRenamerApp() {
 
   async function addFiles(fileList, targetIndex = null) {
     const imgs = fileList
-      .filter((f) => f && ((f.type && f.type.startsWith("image/")) || \.\(jpe?g|png)$/.test(f.name || "")))
+      .filter((f) => f && ((f.type && f.type.startsWith("image/")) || /\.(jpe?g|png)$/.test(f.name || "")))
       .slice(0, 10);
 
     if (!imgs.length) return;
